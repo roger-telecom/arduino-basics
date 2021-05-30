@@ -1,0 +1,44 @@
+int state = LOW; /*Foi criada uma variável para indicar o estado
+do botão*/
+
+int button = 13; /*Variável button indica que o botão está ligado
+no pino 13*/
+
+int LED = 12; /*Variável LED indica que o LED está ligado
+no pino 12*/
+
+void setup()
+{
+
+pinMode(button, INPUT); //Botão setado como entrada.
+pinMode(LED, OUTPUT);  //LED setado como saída.
+  
+}
+
+void loop(){
+  
+int x = digitalRead(button); /*O "x" guarda o que foi lido no 
+button*/
+  
+if(x == HIGH){ //Diz o que acontece se o botão for apertado.
+  
+state = !state; //Muda o estádo de "LOW" para "HIGH"
+  
+delay(500); //Delay de 500 milisegundos.
+  
+}
+  
+if(state == HIGH){ //Diz o que acontece se o "state" for "HIGH".
+  
+    
+digitalWrite(LED, HIGH); //O LED vai para "HIGH".
+
+}
+    
+else {
+   
+digitalWrite(LED,LOW); //O LED vai para "LOW".   
+    
+}
+  
+}
