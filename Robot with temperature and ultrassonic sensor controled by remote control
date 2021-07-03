@@ -1,0 +1,192 @@
+//Roger Mascarenhas - 244046
+//Microcontroladores - Projeto final
+
+//inclui a biblioteca LiquidCrystal do arduino.
+#include <LiquidCrystal.h>
+
+//inclui a biblioteca IRremote do arduino.
+#include <IRremote.h>
+
+//inclui a biblioteca Servo do arduino.
+#include <Servo.h>
+
+//define o nome do servo motor.
+Servo myservo;
+
+//define pino 13 para o trigger do sensor ultrassônico.
+#define sinalTrig 13
+
+//define o pino 10 para o echo do sensor ultrassônico.
+#define sinalEcho 10
+
+//define o pino A1 para o sensor de temperatura.
+#define sensorTemp A1
+
+//define o pino 6 para o servo motor.
+#define servoHead 6
+
+//define o pino 9 para o led.
+#define led 9
+
+//define o pino A2 para o motor ir para frente.
+#define front A2
+
+//define o pino A3 para o motor ir para trás.
+#define behind A3
+
+//define o pino 7 para o sensor infravermelho.
+int const sensorIR = 7;
+
+//variáveis para os cálculos relacionados aos sinais do sensor ultrassônico.
+float dist;
+int tempo;
+
+//variável para a medição que será feita no sensor de temperatura.
+float potTemperatura;
+
+//variável para a temperatura que será calculada a partir da medição do sensor de temperatura.
+float temperatura;
+
+//função para o sensor ultrassônico.
+void pulse1();
+
+//variáveis para a medição no sensor ultrassônico.
+float x;
+float pulse;
+
+void tempLed();
+
+//função do ângulo do servo motor.
+void angulo90();
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+IRrecv receptor(sensorIR);
+decode_results valorControl;
+
+void setup() {
+  
+  pinMode(sinalTrig,OUTPUT); 
+  pinMode(sinalEcho,INPUT);
+  receptor.enableIRIn();
+  Serial.begin(9600);
+  delay(10);
+
+  lcd.begin(16, 2);
+
+  lcd.print("TEMP(C) DIST(cm)");
+  
+}
+
+void loop() {
+  
+  pulse1();
+  pulse = pulseIn(sinalEcho, HIGH);
+  x = pulse/33.66;
+  Serial.println(x);
+  delay(100);
+  
+  //Leitura do sensor de temperatura.
+  potTemperatura = analogRead(sensorTemp); 
+   
+  // Cálculos relacionados a temperatura.
+  temperatura=(((potTemperatura*5)/1024)-0.5)*100;
+  
+  lcd.setCursor(1,1);
+  lcd.print(temperatura);
+  
+  lcd.setCursor(10,1);
+  lcd.print(x);
+  
+if (receptor.decode(&valorControl)) //Verifica os voladores recebidos
+  {
+    switch (valorControl.value)
+    {
+      case 0xFD00FF: //caso apertar o botão de "Ligar" vai executar os comandos abaixo:
+  		myservo.attach(servoHead); //Irá ligar o servoHead.
+      	myservo.write(90); //O servo motor irá girar até o ângulo de 90° (meio)
+        break;
+      
+      case 0xFD20DF: //Vai para a esquerda.
+      
+      	myservo.write(180); //Irá rotacionar 180°.
+      
+        break; 
+      
+      case 0xFD609F: //Vai para a direita.
+		myservo.write(-180); //Irá rotacionar -180°.
+
+        break;
+     
+      case 0xFD08F7:
+      	
+      	for(char i=0; i<30; i++){
+  
+		angulo90();
+        
+    }
+      
+    	break; 
+  
+  	  case 0xFD8877:
+  
+  	 for (int i = 255; i > 0; i--) {
+      
+  analogWrite(led, i); //faz o pwm no LED se a temperatura for maior que 30ºC.
+  delay(10);
+      
+  }
+    
+  for (int i = 0; i < 255; i++) {
+     
+   analogWrite(led, i);
+   delay(10);
+
+  }
+  
+  		break;
+      
+      case 0xFD48B7:
+      
+      digitalWrite(front, HIGH);
+      digitalWrite(behind, LOW);
+      
+      	break;
+      
+      case 0xFD28D7:
+      
+      digitalWrite(front, LOW);
+      digitalWrite(behind, HIGH);
+      
+      	break;
+      
+    }
+  
+    receptor.resume();
+  }
+
+}
+
+void pulse1()
+{
+  
+ digitalWrite(sinalTrig, HIGH);
+ delayMicroseconds(10);
+ digitalWrite(sinalTrig, LOW);
+  
+}
+
+//funções para os ângulos do servo motor.
+void angulo90(){
+  
+digitalWrite(servoHead,HIGH);
+delayMicroseconds(1500);
+digitalWrite(servoHead,LOW);
+
+  for(int i=0; i<12;i++){
+  
+  delayMicroseconds(1500);
+  
+} 
+
+}
